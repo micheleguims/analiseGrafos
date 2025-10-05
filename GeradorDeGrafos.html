@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratório Interativo de Grafos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+        canvas {
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            cursor: grab;
+        }
+        canvas:active {
+            cursor: grabbing;
+        }
+        .placeholder-canvas {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 300px;
+            color: #9ca3af;
+            border: 2px dashed #d1d5db;
+            background-color: #f9fafb;
+            border-radius: 0.75rem;
+        }
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .control-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background-color: #f9fafb;
+            border-radius: 0.5rem;
+        }
+        .control-group {
+            flex: 1 1 150px;
+        }
+        input[type="number"], select {
+            width: 100%;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            border: 1px solid #d1d5db;
+        }
+        .btn {
+            padding: 0.6rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            color: white;
+            transition: background-color 0.2s;
+            flex-shrink: 0;
+        }
+        .btn-primary { background-color: #4f46e5; }
+        .btn-primary:hover { background-color: #4338ca; }
+        .btn-secondary { background-color: #16a34a; }
+        .btn-secondary:hover { background-color: #15803d; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 p-4 sm:p-6 lg:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <header class="text-center mb-10">
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">Laboratório Interativo de Grafos</h1>
+            <p class="mt-2 text-lg text-gray-600">Gere e analise grafos com propriedades personalizadas.</p>
+        </header>
+
+        <!-- Mini Tutorial -->
+        <section class="mb-10 p-6 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg shadow">
+            <h2 class="text-2xl font-bold mb-3 text-blue-800">Bem-vindo!</h2>
+            <p class="mb-4 text-gray-700">Esta ferramenta permite a criação e análise de grafos de forma interativa. Veja como usar:</p>
+            <ul class="list-disc list-inside space-y-2 mb-4">
+                <li>
+                    <strong class="font-semibold">Seção 1 (Gerador Único):</strong> Crie um único grafo a partir de filtros (vértices, arestas) ou a partir de tipos clássicos (Completo, Ciclo).
+                </li>
+                <li>
+                    <strong class="font-semibold">Seção 2 (Gerador de Pares):</strong> Compare dois grafos. Ideal para estudar conceitos como isomorfismo, selecionando as propriedades desejadas.
+                </li>
+            </ul>
+             <div class="mt-4 p-4 bg-yellow-100 border border-yellow-300 rounded-lg text-yellow-800">
+                <p><strong class="font-bold">Dica Interativa:</strong> Após gerar um grafo, você pode <strong class="underline">clicar e arrastar os seus vértices</strong> para mudar o desenho. Reorganize a forma para entender melhor a sua estrutura!</p>
+            </div>
+        </section>
+
+        <!-- SEÇÃO 1: GERADOR DE GRAFO ÚNICO -->
+        <section class="mb-16 p-6 bg-white rounded-xl shadow-md">
+            <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-center text-indigo-700">1. Gerador de Grafo Único</h2>
+            
+            <div class="space-y-4">
+                 <!-- Linha 1: Filtros Gerais -->
+                <div class="control-row">
+                    <div class="control-group">
+                        <label for="sg-vertices-filtros" class="font-medium block mb-1">Vértices (3-10):</label>
+                        <input type="number" id="sg-vertices-filtros" value="6" min="3" max="10">
+                    </div>
+                    <div class="control-group">
+                        <label for="sg-edges" class="font-medium block mb-1">Arestas:</label>
+                        <input type="number" id="sg-edges" value="5" min="0">
+                    </div>
+                    <div class="control-group">
+                        <label for="sg-properties" class="font-medium block mb-1">Propriedades:</label>
+                         <select id="sg-properties">
+                            <option value="any">Qualquer</option>
+                            <option value="connected">Conexo</option>
+                            <option value="disconnected">Desconexo</option>
+                            <option value="bipartite">Bipartido</option>
+                        </select>
+                    </div>
+                    <button id="generate-single" class="btn btn-primary">Gerar Grafo com Filtros</button>
+                </div>
+                
+                <!-- Linha 2: Clássicos -->
+                 <div class="control-row">
+                    <div class="control-group">
+                         <label for="sg-vertices-classicos" class="font-medium block mb-1">Vértices (3-10):</label>
+                        <input type="number" id="sg-vertices-classicos" value="5" min="3" max="10">
+                    </div>
+                    <div class="flex items-end gap-4">
+                        <button id="generate-kn" class="btn btn-secondary">Gerar Completo (Kn)</button>
+                        <button id="generate-cn" class="btn btn-secondary">Gerar Ciclo (Cn)</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center mt-6">
+                <div>
+                    <div id="sg-canvas-container" class="w-full aspect-square placeholder-canvas"><span>O grafo gerado aparecerá aqui.</span></div>
+                </div>
+                <div id="sg-info" class="p-4 bg-gray-50 rounded-lg min-h-[200px]">
+                    <h3 class="font-bold text-lg mb-2">Propriedades do Grafo:</h3>
+                    <p class="text-gray-600">Aguardando geração...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO 2: GERADOR DE PARES -->
+        <section class="p-6 bg-white rounded-xl shadow-md">
+            <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-center text-rose-700">2. Gerador de Pares de Grafos</h2>
+            <div class="control-grid mb-6">
+                <div>
+                    <label for="pg-vertices" class="font-medium block mb-1">Número de Vértices:</label>
+                     <select id="pg-vertices">
+                        <option value="5">5</option>
+                        <option value="6" selected>6</option>
+                        <option value="7">7</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="pg-isomorphic" class="font-medium block mb-1">São Isomorfos?</label>
+                    <select id="pg-isomorphic">
+                        <option value="true">Sim</option>
+                        <option value="false">Não</option>
+                    </select>
+                </div>
+                 <div>
+                    <label for="pg-same-props" class="font-medium block mb-1">Propriedades Iguais?</label>
+                    <select id="pg-same-props">
+                        <option value="true">Sim</option>
+                        <option value="false">Não</option>
+                    </select>
+                </div>
+                 <div>
+                    <label for="pg-one-disconnected" class="font-medium block mb-1">Um é Desconexo?</label>
+                    <select id="pg-one-disconnected">
+                        <option value="false">Não</option>
+                        <option value="true">Sim</option>
+                    </select>
+                </div>
+            </div>
+            <div class="text-center mb-6">
+                 <button id="generate-pair" class="btn btn-primary">Gerar Dupla de Grafos</button>
+            </div>
+             <p id="pg-message" class="text-center text-md text-gray-700 mb-4 h-6"></p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                 <div class="text-center">
+                    <div id="pg-canvas-A-container" class="w-full aspect-square placeholder-canvas"><span>Grafo A</span></div>
+                </div>
+                <div class="text-center">
+                    <div id="pg-canvas-B-container" class="w-full aspect-square placeholder-canvas"><span>Grafo B</span></div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="text-center mt-12 py-4 border-t border-gray-200">
+            <p class="text-sm text-gray-500">
+                Desenvolvido por Michele Guimarães Massari com o auxílio da IA Gemini.<br>Apoio à disciplina Fundamentos de Algorítmo para Computação (FAC) do curso de TSC - Cederj/UFF
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        const VERTEX_RADIUS = 16;
+        const LINE_COLOR = '#4a5568';
+        const VERTEX_BORDER_COLOR = '#1f2937';
+        const TEXT_COLOR = '#ffffff';
+        const VERTEX_COLORS = ['#ef4444','#f97316','#eab308','#84cc16','#22c55e','#14b8a6','#06b6d4','#3b82f6','#8b5cf6','#d946ef'];
+        
+        let activeRenderers = {};
+
+        class GraphRenderer {
+             constructor(containerId, vertices, edges) {
+                this.container = document.getElementById(containerId);
+                this.originalPlaceholder = this.container.innerHTML;
+                this.container.innerHTML = '';
+                this.container.classList.remove('placeholder-canvas');
+                this.canvas = document.createElement('canvas');
+                const size = this.container.clientWidth;
+                this.canvas.width = size; this.canvas.height = size;
+                this.container.appendChild(this.canvas);
+                this.ctx = this.canvas.getContext('2d');
+                this.vertices = JSON.parse(JSON.stringify(vertices));
+                this.edges = edges;
+                this.draggingVertex = null;
+                this.boundOnMouseDown = this.onMouseDown.bind(this);
+                this.boundOnMouseMove = this.onMouseMove.bind(this);
+                this.boundOnMouseUp = this.onMouseUp.bind(this);
+                this.boundOnTouchStart = (e) => { if (e.touches.length === 1) { e.preventDefault(); this.onMouseDown(e); } };
+                this.boundOnTouchMove = (e) => { if (e.touches.length === 1) { e.preventDefault(); this.onMouseMove(e); } };
+                this.canvas.addEventListener('mousedown', this.boundOnMouseDown);
+                this.canvas.addEventListener('mousemove', this.boundOnMouseMove);
+                this.canvas.addEventListener('mouseup', this.boundOnMouseUp);
+                this.canvas.addEventListener('mouseout', this.boundOnMouseUp);
+                this.canvas.addEventListener('touchstart', this.boundOnTouchStart, { passive: false });
+                this.canvas.addEventListener('touchmove', this.boundOnTouchMove, { passive: false });
+                this.canvas.addEventListener('touchend', this.boundOnMouseUp);
+                this.draw();
+            }
+            destroy() {
+                this.canvas.removeEventListener('mousedown', this.boundOnMouseDown);
+                this.canvas.removeEventListener('mousemove', this.boundOnMouseMove);
+                this.canvas.removeEventListener('mouseup', this.boundOnMouseUp);
+                this.canvas.removeEventListener('mouseout', this.boundOnMouseUp);
+                this.canvas.removeEventListener('touchstart', this.boundOnTouchStart);
+                this.canvas.removeEventListener('touchmove', this.boundOnTouchMove);
+                this.canvas.removeEventListener('touchend', this.boundOnMouseUp);
+                this.container.innerHTML = this.originalPlaceholder;
+                this.container.classList.add('placeholder-canvas');
+            }
+            draw() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.strokeStyle = LINE_COLOR; this.ctx.lineWidth = 2;
+                this.edges.forEach(edge => {
+                    const v1 = this.vertices[edge[0]]; const v2 = this.vertices[edge[1]];
+                    if (!v1 || !v2) return;
+                    this.ctx.beginPath(); this.ctx.moveTo(v1.x, v1.y); this.ctx.lineTo(v2.x, v2.y); this.ctx.stroke();
+                });
+                this.vertices.forEach((vertex, index) => {
+                    this.ctx.beginPath(); this.ctx.arc(vertex.x, vertex.y, VERTEX_RADIUS, 0, 2 * Math.PI);
+                    this.ctx.fillStyle = VERTEX_COLORS[index % VERTEX_COLORS.length]; this.ctx.fill();
+                    this.ctx.strokeStyle = VERTEX_BORDER_COLOR; this.ctx.lineWidth = 2; this.ctx.stroke();
+                    this.ctx.fillStyle = TEXT_COLOR; this.ctx.font = 'bold 14px Inter';
+                    this.ctx.textAlign = 'center'; this.ctx.textBaseline = 'middle'; this.ctx.fillText(index + 1, vertex.x, vertex.y);
+                });
+            }
+            getMousePos(event) {
+                const rect = this.canvas.getBoundingClientRect();
+                const scaleX = this.canvas.width / rect.width; const scaleY = this.canvas.height / rect.height;
+                const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+                const clientY = event.touches ? event.touches[0].clientY : event.clientY;
+                return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+            }
+            onMouseDown(event) {
+                const pos = this.getMousePos(event);
+                for (let i = this.vertices.length - 1; i >= 0; i--) {
+                    const v = this.vertices[i];
+                    if ((pos.x - v.x)**2 + (pos.y - v.y)**2 < VERTEX_RADIUS**2) { this.draggingVertex = { vertex: v, offsetX: pos.x - v.x, offsetY: pos.y - v.y }; return; }
+                }
+            }
+            onMouseMove(event) {
+                if (this.draggingVertex) {
+                    const pos = this.getMousePos(event);
+                    this.draggingVertex.vertex.x = Math.max(VERTEX_RADIUS, Math.min(this.canvas.width - VERTEX_RADIUS, pos.x - this.draggingVertex.offsetX));
+                    this.draggingVertex.vertex.y = Math.max(VERTEX_RADIUS, Math.min(this.canvas.height - VERTEX_RADIUS, pos.y - this.draggingVertex.offsetY));
+                    this.draw();
+                }
+            }
+            onMouseUp() { this.draggingVertex = null; }
+        }
+
+        const pairDatabase = [
+            { numVertices: 6, isomorphic: true, sameProps: true, oneDisconnected: false, edges: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0]], description: "Dois desenhos do ciclo C6." },
+            { numVertices: 7, isomorphic: true, sameProps: true, oneDisconnected: false, edges: [[0,1],[1,2],[2,3],[3,0],[0,4],[4,5],[5,6],[6,0]], description: "Dois desenhos de C4 e C4 com vértice em comum." },
+            { numVertices: 6, isomorphic: false, sameProps: true, oneDisconnected: true, graphA: { numVertices: 6, edges: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0]] }, graphB: { numVertices: 6, edges: [[0,1],[1,2],[2,0],[3,4],[4,5],[5,3]] }, description: "Não isomorfos: C6 (conexo) vs 2x C3 (desconexo). Ambos 2-regulares." },
+            { numVertices: 6, isomorphic: false, sameProps: true, oneDisconnected: false, graphA: { numVertices: 6, edges: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0], [0,3]] }, graphB: { numVertices: 6, edges: [[0,1],[1,2],[2,3],[3,4],[4,0], [0,5],[2,5]] }, description: "Não isomorfos, ambos conexos. Um é bipartido, o outro não." },
+            { numVertices: 5, isomorphic: false, sameProps: false, oneDisconnected: false, graphA: { numVertices: 5, edges: [[0,1],[1,2],[2,3],[3,4],[4,0]] }, graphB: { numVertices: 5, edges: [[0,1],[1,2],[2,0],[0,3],[3,4]] }, description: "Propriedades diferentes: C5 (2-regular) vs Grafo com graus (4,2,2,2,2)." },
+        ];
+        
+        window.onload = () => {
+            // --- SEÇÃO 2 ---
+            const pgBtn = document.getElementById('generate-pair');
+            const pgVertices = document.getElementById('pg-vertices');
+            const pgIso = document.getElementById('pg-isomorphic');
+            const pgProps = document.getElementById('pg-same-props');
+            const pgDisc = document.getElementById('pg-one-disconnected');
+            const pgMsg = document.getElementById('pg-message');
+
+            pgIso.addEventListener('change', () => {
+                if (pgIso.value === 'true') { pgProps.value = 'true'; pgProps.disabled = true; } 
+                else { pgProps.disabled = false; }
+            });
+            pgIso.dispatchEvent(new Event('change'));
+
+            pgBtn.addEventListener('click', () => {
+                const n = parseInt(pgVertices.value);
+                const isIsomorphic = pgIso.value === 'true';
+                const hasSameProps = pgProps.value === 'true';
+                const isOneDisconnected = pgDisc.value === 'true';
+                const filtered = pairDatabase.filter(p => p.numVertices === n && p.isomorphic === isIsomorphic && p.sameProps === hasSameProps && p.oneDisconnected === isOneDisconnected);
+                if (filtered.length > 0) {
+                    const pair = filtered[Math.floor(Math.random() * filtered.length)];
+                    pgMsg.textContent = pair.description;
+                    const graphA = pair.graphA || { numVertices: pair.numVertices, edges: pair.edges };
+                    const graphB = pair.graphB || { numVertices: pair.numVertices, edges: pair.edges };
+                    renderGraph('pg-canvas-A-container', graphA.numVertices, graphA.edges);
+                    renderGraph('pg-canvas-B-container', graphB.numVertices, graphB.edges);
+                } else {
+                    pgMsg.textContent = "Nenhum exemplo encontrado para esta combinação.";
+                    clearCanvas('pg-canvas-A-container'); clearCanvas('pg-canvas-B-container');
+                }
+            });
+
+            // --- SEÇÃO 1 ---
+            const sgVerticesFiltros = document.getElementById('sg-vertices-filtros');
+            const sgEdges = document.getElementById('sg-edges');
+            
+            function updateEdgeLimit() {
+                const n = parseInt(sgVerticesFiltros.value);
+                const maxEdges = n * (n - 1) / 2;
+                sgEdges.max = maxEdges;
+                if (parseInt(sgEdges.value) > maxEdges) {
+                    sgEdges.value = maxEdges;
+                }
+            }
+            
+            sgVerticesFiltros.addEventListener('input', updateEdgeLimit);
+            updateEdgeLimit();
+
+            document.getElementById('generate-single').addEventListener('click', () => {
+                const n = parseInt(sgVerticesFiltros.value);
+                const m = parseInt(sgEdges.value);
+                const property = document.getElementById('sg-properties').value;
+                
+                let edges = null;
+                let type = "Gerado com Filtros";
+
+                if (property === 'connected') {
+                    type = "Conexo";
+                    if (m < n - 1) {
+                        updateGraphInfo('sg-info', n, [], 'Inválido', `Um grafo conexo com ${n} vértices precisa de pelo menos ${n - 1} arestas.`);
+                        clearCanvas('sg-canvas-container'); return;
+                    }
+                    edges = generateConnectedEdges(n, m);
+                } else if (property === 'disconnected') {
+                    type = "Desconexo";
+                    const maxEdgesForComponent = (n - 1) * (n - 2) / 2;
+                    if (m > maxEdgesForComponent) {
+                        updateGraphInfo('sg-info', n, [], 'Inválido', `Para garantir um grafo desconexo com ${n} vértices (isolando um), o número de arestas não pode exceder ${maxEdgesForComponent}.`);
+                        clearCanvas('sg-canvas-container'); return;
+                    }
+                    edges = generateDisconnectedEdges(n, m);
+                } else {
+                    edges = generateRandomEdges(n, m);
+                }
+
+                if (edges) {
+                    renderGraph('sg-canvas-container', n, edges);
+                    updateGraphInfo('sg-info', n, edges, type);
+                }
+            });
+
+            document.getElementById('generate-kn').addEventListener('click', () => {
+                const n = parseInt(document.getElementById('sg-vertices-classicos').value);
+                const edges = generateCompleteEdges(n);
+                renderGraph('sg-canvas-container', n, edges);
+                updateGraphInfo('sg-info', n, edges, `Completo (K${n})`);
+            });
+             document.getElementById('generate-cn').addEventListener('click', () => {
+                const n = parseInt(document.getElementById('sg-vertices-classicos').value);
+                const edges = generateCycleEdges(n);
+                renderGraph('sg-canvas-container', n, edges);
+                updateGraphInfo('sg-info', n, edges, `Ciclo (C${n})`);
+            });
+        };
+        
+        function renderGraph(containerId, numVertices, edges) {
+             if (activeRenderers[containerId]) activeRenderers[containerId].destroy();
+             const container = document.getElementById(containerId);
+             const size = container.clientWidth;
+             const vertices = generateRandomVertices(numVertices, size, size);
+             activeRenderers[containerId] = new GraphRenderer(containerId, vertices, edges);
+        }
+        function clearCanvas(containerId) {
+             if (activeRenderers[containerId]) activeRenderers[containerId].destroy();
+        }
+        function updateGraphInfo(infoId, n, edges, type = "Aleatório", errorMsg = "") {
+            const infoBox = document.getElementById(infoId);
+            if (errorMsg) {
+                 infoBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-2 text-red-600">Parâmetros Inválidos</h3>
+                <p class="text-red-700">${errorMsg}</p>`;
+                return;
+            }
+            const degrees = new Array(n).fill(0);
+            edges.forEach(([u,v]) => { if (u < n && v < n) { degrees[u]++; degrees[v]++; }});
+            degrees.sort((a, b) => b - a);
+            infoBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-2">Propriedades do Grafo:</h3>
+                <p><strong>Tipo Solicitado:</strong> ${type}</p>
+                <p><strong>Vértices (n):</strong> ${n}</p>
+                <p><strong>Arestas (m):</strong> ${edges.length}</p>
+                <p><strong>Seq. de Graus:</strong> (${degrees.join(', ')})</p>
+            `;
+        }
+        function generateRandomEdges(n, m) {
+            const edges = []; const edgeSet = new Set();
+            if (n <= 1) return [];
+            let maxEdges = n * (n - 1) / 2;
+            if (m > maxEdges) m = maxEdges;
+            let tries = 0;
+            while(edges.length < m && tries < (m*5)+100) {
+                let u = Math.floor(Math.random() * n); let v = Math.floor(Math.random() * n);
+                if (u === v) continue;
+                const key = u < v ? `${u}-${v}` : `${v}-${u}`;
+                if (!edgeSet.has(key)) { edgeSet.add(key); edges.push([u,v]); }
+                tries++;
+            }
+            return edges;
+        }
+
+        function generateConnectedEdges(n, m) {
+            if (m < n - 1) return null;
+            const edges = [];
+            const edgeSet = new Set();
+            let vertices = Array.from({length: n}, (_, i) => i);
+            vertices.sort(() => Math.random() - 0.5); // Shuffle vertices
+            
+            for (let i = 0; i < n - 1; i++) {
+                let u = vertices[i];
+                let v = vertices[i+1];
+                 const key = u < v ? `${u}-${v}` : `${v}-${u}`;
+                edgeSet.add(key);
+                edges.push([u, v]);
+            }
+
+            let tries = 0;
+            while(edges.length < m && tries < (m*5)+100) {
+                let u = Math.floor(Math.random() * n);
+                let v = Math.floor(Math.random() * n);
+                if (u === v) continue;
+                const key = u < v ? `${u}-${v}` : `${v}-${u}`;
+                if (!edgeSet.has(key)) {
+                    edgeSet.add(key);
+                    edges.push([u,v]);
+                }
+                tries++;
+            }
+            return edges;
+        }
+
+        function generateDisconnectedEdges(n, m) {
+            if (n < 2) return [];
+            const maxEdgesForComponent = (n - 1) * (n - 2) / 2;
+            if (m > maxEdgesForComponent) return null;
+            const edges = [];
+            const edgeSet = new Set();
+            let tries = 0;
+            while(edges.length < m && tries < (m*5)+100) {
+                let u = Math.floor(Math.random() * (n - 1));
+                let v = Math.floor(Math.random() * (n - 1));
+                if (u === v) continue;
+                const key = u < v ? `${u}-${v}` : `${v}-${u}`;
+                if (!edgeSet.has(key)) {
+                    edgeSet.add(key);
+                    edges.push([u,v]);
+                }
+                tries++;
+            }
+            return edges;
+        }
+
+        function generateCompleteEdges(n) {
+            const edges = [];
+            for(let i=0; i<n; i++) for(let j=i+1; j<n; j++) edges.push([i,j]);
+            return edges;
+        }
+        function generateCycleEdges(n) {
+            const edges = [];
+            for(let i=0; i<n-1; i++) edges.push([i, i+1]);
+            if (n>1) edges.push([n-1, 0]);
+            return edges;
+        }
+        function generateRandomVertices(numVertices, width, height) {
+            const vertices = []; const margin = VERTEX_RADIUS * 2;
+            for (let i = 0; i < numVertices; i++) {
+                vertices.push({ x: Math.random()*(width - margin*2)+margin, y: Math.random()*(height - margin*2)+margin });
+            }
+            return vertices;
+        }
+    </script>
+</body>
+</html>
+
