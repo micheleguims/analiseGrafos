@@ -147,18 +147,31 @@
                         <input type="number" id="sg-vertices-filtros" value="6" min="3" max="10">
                     </div>
                     <div class="control-group">
-                        <label for="sg-edges" class="font-medium block mb-1">Arestas:</label>
-                        <input type="number" id="sg-edges" value="5" min="0">
-                    </div>
-                    <div class="control-group">
                         <label for="sg-properties" class="font-medium block mb-1">Propriedades:</label>
                          <select id="sg-properties">
                             <option value="any">Qualquer</option>
                             <option value="connected">Conexo</option>
                             <option value="disconnected">Desconexo</option>
+                            <option value="with_cycle">Contém Ciclo(s)</option>
                         </select>
                     </div>
-                    <button id="generate-single" class="btn btn-primary">Gerar Grafo com Filtros</button>
+                    <div id="general-options" class="contents">
+                        <div class="control-group">
+                            <label for="sg-edges" class="font-medium block mb-1">Arestas:</label>
+                            <input type="number" id="sg-edges" value="5" min="0">
+                        </div>
+                    </div>
+                    <div id="cycle-options" class="contents" style="display: none;">
+                        <div class="control-group">
+                            <label for="sg-num-cycles" class="font-medium block mb-1">Nº de Ciclos:</label>
+                            <input type="number" id="sg-num-cycles" value="1" min="1">
+                        </div>
+                        <div class="control-group">
+                            <label for="sg-cycle-length" class="font-medium block mb-1">Arestas/Ciclo:</label>
+                            <input type="number" id="sg-cycle-length" value="3" min="3">
+                        </div>
+                    </div>
+                    <button id="generate-single" class="btn btn-primary">Gerar Grafo</button>
                 </div>
             </div>
             
@@ -350,6 +363,25 @@
             onMouseUp() { this.draggingVertex = null; }
         }
 
+        class DSU {
+            constructor(n) {
+                this.parent = Array.from({length: n}, (_, i) => i);
+            }
+            find(i) {
+                if (this.parent[i] === i) return i;
+                return this.parent[i] = this.find(this.parent[i]);
+            }
+            union(i, j) {
+                const rootI = this.find(i);
+                const rootJ = this.find(j);
+                if (rootI !== rootJ) {
+                    this.parent[rootI] = rootJ;
+                    return true;
+                }
+                return false;
+            }
+        }
+
         const pairDatabase = [
             { numVertices: 6, isomorphic: true, sameProps: true, oneDisconnected: false, edges: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0]], description: "Dois desenhos do ciclo C6." },
             { numVertices: 7, isomorphic: true, sameProps: true, oneDisconnected: false, edges: [[0,1],[1,2],[2,3],[3,0],[0,4],[4,5],[5,6],[6,0]], description: "Dois desenhos de C4 e C4 com vértice em comum." },
@@ -377,39 +409,87 @@
             // Filtros Gerais
             const sgVerticesFiltros = document.getElementById('sg-vertices-filtros');
             const sgEdges = document.getElementById('sg-edges');
-            function updateEdgeLimit() {
+            const sgProperties = document.getElementById('sg-properties');
+            const cycleOptions = document.getElementById('cycle-options');
+            const sgNumCycles = document.getElementById('sg-num-cycles');
+            const sgCycleLength = document.getElementById('sg-cycle-length');
+
+            function updateFilterOptions() {
                 const n = parseInt(sgVerticesFiltros.value);
-                const maxEdges = n * (n - 1) / 2;
-                sgEdges.max = maxEdges;
-                if (parseInt(sgEdges.value) > maxEdges) sgEdges.value = maxEdges;
+                const property = sgProperties.value;
+                const sgEdgesLabel = document.querySelector('#general-options label');
+
+                if (property === 'with_cycle') {
+                    cycleOptions.style.display = 'contents';
+                    sgEdgesLabel.innerHTML = 'Total de Arestas:';
+                    
+                    const numCycles = parseInt(sgNumCycles.value);
+                    const requiredVertices = numCycles * parseInt(sgCycleLength.value);
+                    const initialComponents = (n - requiredVertices) + numCycles;
+                    const maxEdges = (numCycles * parseInt(sgCycleLength.value)) + (initialComponents > 1 ? initialComponents - 1 : 0) ;
+                    
+                    sgEdges.max = maxEdges;
+                    if (parseInt(sgEdges.value) > maxEdges) sgEdges.value = maxEdges;
+
+                } else {
+                    cycleOptions.style.display = 'none';
+                    sgEdgesLabel.innerHTML = 'Arestas:';
+                    const maxEdges = n * (n - 1) / 2;
+                    sgEdges.max = maxEdges;
+                    if (parseInt(sgEdges.value) > maxEdges) sgEdges.value = maxEdges;
+                }
             }
-            sgVerticesFiltros.addEventListener('input', updateEdgeLimit);
-            updateEdgeLimit();
+
+            sgProperties.addEventListener('change', updateFilterOptions);
+            sgVerticesFiltros.addEventListener('input', updateFilterOptions);
+            sgNumCycles.addEventListener('input', updateFilterOptions);
+            sgCycleLength.addEventListener('input', updateFilterOptions);
+            updateFilterOptions();
 
             document.getElementById('generate-single').addEventListener('click', () => {
                 const n = parseInt(sgVerticesFiltros.value);
-                const m = parseInt(sgEdges.value);
-                const property = document.getElementById('sg-properties').value;
+                const property = sgProperties.value;
                 let edges = null;
                 let type = "Gerado com Filtros";
-                if (property === 'connected') {
-                    type = "Conexo";
-                    if (m < n - 1) {
-                        updateGraphInfo('sg-info', n, [], 'Inválido', `Um grafo conexo com ${n} vértices precisa de pelo menos ${n - 1} arestas.`);
+                const m = parseInt(sgEdges.value);
+
+                if (property === 'with_cycle') {
+                    const numCycles = parseInt(sgNumCycles.value);
+                    const cycleLength = parseInt(sgCycleLength.value);
+                    type = `Com ${numCycles} ciclo(s) de C${cycleLength}`;
+                    const requiredVertices = numCycles * cycleLength;
+                    
+                    if (n < requiredVertices) {
+                         updateGraphInfo('sg-info', n, [], 'Inválido', `Para ${numCycles} ciclo(s) de tamanho ${cycleLength}, são necessários pelo menos ${requiredVertices} vértices.`);
                         clearCanvas('sg-canvas-container'); return;
                     }
-                    edges = generateConnectedEdges(n, m);
-                } else if (property === 'disconnected') {
-                    type = "Desconexo";
-                    const maxEdgesForComponent = (n - 1) * (n - 2) / 2;
-                    if (m > maxEdgesForComponent) {
-                        updateGraphInfo('sg-info', n, [], 'Inválido', `Para garantir um grafo desconexo com ${n} vértices, o número de arestas não pode exceder ${maxEdgesForComponent}.`);
+                    if (m < requiredVertices) {
+                        updateGraphInfo('sg-info', n, [], 'Inválido', `Para construir o(s) ciclo(s) são necessárias ${requiredVertices} arestas. Você pediu um total de ${m}.`);
                         clearCanvas('sg-canvas-container'); return;
                     }
-                    edges = generateDisconnectedEdges(n, m);
+                    edges = generateGraphWithCycles(n, numCycles, cycleLength, m);
+
                 } else {
-                    edges = generateRandomEdges(n, m);
+                    if (property === 'connected') {
+                        type = "Conexo";
+                        if (m < n - 1) {
+                            updateGraphInfo('sg-info', n, [], 'Inválido', `Um grafo conexo com ${n} vértices precisa de pelo menos ${n - 1} arestas.`);
+                            clearCanvas('sg-canvas-container'); return;
+                        }
+                        edges = generateConnectedEdges(n, m);
+                    } else if (property === 'disconnected') {
+                        type = "Desconexo";
+                        const maxEdgesForComponent = (n - 1) * (n - 2) / 2;
+                        if (m > maxEdgesForComponent) {
+                            updateGraphInfo('sg-info', n, [], 'Inválido', `Para garantir um grafo desconexo com ${n} vértices, o número de arestas não pode exceder ${maxEdgesForComponent}.`);
+                            clearCanvas('sg-canvas-container'); return;
+                        }
+                        edges = generateDisconnectedEdges(n, m);
+                    } else {
+                        edges = generateRandomEdges(n, m);
+                    }
                 }
+                
                 if (edges) {
                     renderGraph('sg-canvas-container', n, edges);
                     updateGraphInfo('sg-info', n, edges, type);
@@ -507,12 +587,27 @@
             const degrees = new Array(n).fill(0);
             edges.forEach(([u,v]) => { if (u < n && v < n) { degrees[u]++; degrees[v]++; }});
             degrees.sort((a, b) => b - a);
+
+            let bipartitenessInfo = '';
+            if (type.includes('ciclo(s)')) {
+                const cycleLengthMatch = type.match(/C(\d+)/);
+                if (cycleLengthMatch && cycleLengthMatch[1]) {
+                    const cycleLength = parseInt(cycleLengthMatch[1]);
+                    if (cycleLength % 2 === 0) {
+                        bipartitenessInfo = '<p><strong>Bipartido:</strong> <span class="text-green-600 font-semibold">Sim</span> (ciclos de comprimento par)</p>';
+                    } else {
+                        bipartitenessInfo = '<p><strong>Bipartido:</strong> <span class="text-red-600 font-semibold">Não</span> (contém ciclo ímpar)</p>';
+                    }
+                }
+            }
+
             infoBox.innerHTML = `
                 <h3 class="font-bold text-lg mb-2">Propriedades do Grafo:</h3>
                 <p><strong>Tipo Solicitado:</strong> ${type}</p>
                 <p><strong>Vértices (n):</strong> ${n}</p>
                 <p><strong>Arestas (m):</strong> ${edges.length}</p>
                 <p><strong>Seq. de Graus:</strong> (${degrees.join(', ')})</p>
+                ${bipartitenessInfo}
             `;
         }
         function generateRandomEdges(n, m) {
@@ -526,6 +621,48 @@
                 if (u === v) continue;
                 const key = u < v ? `${u}-${v}` : `${v}-${u}`;
                 if (!edgeSet.has(key)) { edgeSet.add(key); edges.push([u,v]); }
+                tries++;
+            }
+            return edges;
+        }
+        function generateGraphWithCycles(n, numCycles, cycleLength, totalEdges) {
+            const edges = [];
+            const edgeSet = new Set();
+            let currentVertex = 0;
+            
+            for (let i = 0; i < numCycles; i++) {
+                const cycleStartVertex = currentVertex;
+                for (let j = 0; j < cycleLength - 1; j++) {
+                    let u = currentVertex; let v = currentVertex + 1;
+                    const key = u < v ? `${u}-${v}` : `${v}-${u}`;
+                    edgeSet.add(key); edges.push([u, v]);
+                    currentVertex++;
+                }
+                let u = currentVertex; let v = cycleStartVertex;
+                const key = u < v ? `${u}-${v}` : `${v}-${u}`;
+                edgeSet.add(key); edges.push([u, v]);
+                currentVertex++;
+            }
+            
+            const dsu = new DSU(n);
+            for (const edge of edges) {
+                dsu.union(edge[0], edge[1]);
+            }
+
+            let tries = 0;
+            const maxTries = (totalEdges * 5) + 100;
+            while (edges.length < totalEdges && tries < maxTries) {
+                let u = Math.floor(Math.random() * n);
+                let v = Math.floor(Math.random() * n);
+                
+                const key = u < v ? `${u}-${v}` : `${v}-${u}`;
+                if (u !== v && !edgeSet.has(key)) {
+                    if (dsu.find(u) !== dsu.find(v)) {
+                        dsu.union(u, v);
+                        edges.push([u, v]);
+                        edgeSet.add(key);
+                    }
+                }
                 tries++;
             }
             return edges;
@@ -605,3 +742,5 @@
     </script>
 </body>
 </html>
+
+
