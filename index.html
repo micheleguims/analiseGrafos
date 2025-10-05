@@ -56,6 +56,37 @@
             border-radius: 0.375rem;
             border: 1px solid #d1d5db;
         }
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #d1d5db;
+            border-radius: 5px;
+            outline: none;
+            opacity: 0.7;
+            -webkit-transition: .2s;
+            transition: opacity .2s;
+        }
+        input[type="range"]:hover {
+            opacity: 1;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #4f46e5;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #4f46e5;
+            border-radius: 50%;
+            cursor: pointer;
+        }
         .btn {
             padding: 0.6rem 1.5rem;
             border-radius: 0.5rem;
@@ -99,8 +130,17 @@
         <section class="mb-16 p-6 bg-white rounded-xl shadow-md">
             <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-center text-indigo-700">1. Gerador de Grafo Único</h2>
             
-            <div class="space-y-4">
-                 <!-- Linha 1: Filtros Gerais -->
+            <div class="mb-6">
+                <label for="graph-type-selector" class="font-medium block mb-2 text-lg">Selecione o Tipo de Geração:</label>
+                <select id="graph-type-selector" class="w-full p-2 border border-gray-300 rounded-md">
+                    <option value="filters">Aleatório com Filtros</option>
+                    <option value="bipartite">Bipartido</option>
+                    <option value="classic">Clássicos (Completo/Ciclo)</option>
+                </select>
+            </div>
+
+            <!-- Container for Filter Generator -->
+            <div id="filters-generator">
                 <div class="control-row">
                     <div class="control-group">
                         <label for="sg-vertices-filtros" class="font-medium block mb-1">Vértices (3-10):</label>
@@ -116,13 +156,33 @@
                             <option value="any">Qualquer</option>
                             <option value="connected">Conexo</option>
                             <option value="disconnected">Desconexo</option>
-                            <option value="bipartite">Bipartido</option>
                         </select>
                     </div>
                     <button id="generate-single" class="btn btn-primary">Gerar Grafo com Filtros</button>
                 </div>
-                
-                <!-- Linha 2: Clássicos -->
+            </div>
+            
+            <!-- Container for Bipartite Generator -->
+            <div id="bipartite-generator" style="display: none;">
+                 <div class="control-row">
+                    <div class="control-group">
+                        <label for="sg-part1-size" class="font-medium block mb-1">Vértices Part. 1 (U):</label>
+                        <input type="number" id="sg-part1-size" value="3" min="1" max="7">
+                    </div>
+                    <div class="control-group">
+                        <label for="sg-part2-size" class="font-medium block mb-1">Vértices Part. 2 (V):</label>
+                        <input type="number" id="sg-part2-size" value="3" min="1" max="7">
+                    </div>
+                    <div class="control-group">
+                        <label for="sg-bipartite-density" class="font-medium block mb-1">Densidade de Arestas: <span id="density-value">50</span>%</label>
+                        <input type="range" id="sg-bipartite-density" value="50" min="0" max="100">
+                    </div>
+                    <button id="generate-bipartite" class="btn btn-primary">Gerar Grafo Bipartido</button>
+                </div>
+            </div>
+            
+            <!-- Container for Classic Generator -->
+            <div id="classic-generator" style="display: none;">
                  <div class="control-row">
                     <div class="control-group">
                          <label for="sg-vertices-classicos" class="font-medium block mb-1">Vértices (3-10):</label>
@@ -299,6 +359,99 @@
         ];
         
         window.onload = () => {
+            // --- SEÇÃO 1 ---
+            const typeSelector = document.getElementById('graph-type-selector');
+            const filtersGen = document.getElementById('filters-generator');
+            const bipartiteGen = document.getElementById('bipartite-generator');
+            const classicGen = document.getElementById('classic-generator');
+
+            typeSelector.addEventListener('change', () => {
+                filtersGen.style.display = 'none';
+                bipartiteGen.style.display = 'none';
+                classicGen.style.display = 'none';
+                const selected = typeSelector.value;
+                document.getElementById(selected + '-generator').style.display = 'block';
+            });
+            typeSelector.dispatchEvent(new Event('change'));
+
+            // Filtros Gerais
+            const sgVerticesFiltros = document.getElementById('sg-vertices-filtros');
+            const sgEdges = document.getElementById('sg-edges');
+            function updateEdgeLimit() {
+                const n = parseInt(sgVerticesFiltros.value);
+                const maxEdges = n * (n - 1) / 2;
+                sgEdges.max = maxEdges;
+                if (parseInt(sgEdges.value) > maxEdges) sgEdges.value = maxEdges;
+            }
+            sgVerticesFiltros.addEventListener('input', updateEdgeLimit);
+            updateEdgeLimit();
+
+            document.getElementById('generate-single').addEventListener('click', () => {
+                const n = parseInt(sgVerticesFiltros.value);
+                const m = parseInt(sgEdges.value);
+                const property = document.getElementById('sg-properties').value;
+                let edges = null;
+                let type = "Gerado com Filtros";
+                if (property === 'connected') {
+                    type = "Conexo";
+                    if (m < n - 1) {
+                        updateGraphInfo('sg-info', n, [], 'Inválido', `Um grafo conexo com ${n} vértices precisa de pelo menos ${n - 1} arestas.`);
+                        clearCanvas('sg-canvas-container'); return;
+                    }
+                    edges = generateConnectedEdges(n, m);
+                } else if (property === 'disconnected') {
+                    type = "Desconexo";
+                    const maxEdgesForComponent = (n - 1) * (n - 2) / 2;
+                    if (m > maxEdgesForComponent) {
+                        updateGraphInfo('sg-info', n, [], 'Inválido', `Para garantir um grafo desconexo com ${n} vértices, o número de arestas não pode exceder ${maxEdgesForComponent}.`);
+                        clearCanvas('sg-canvas-container'); return;
+                    }
+                    edges = generateDisconnectedEdges(n, m);
+                } else {
+                    edges = generateRandomEdges(n, m);
+                }
+                if (edges) {
+                    renderGraph('sg-canvas-container', n, edges);
+                    updateGraphInfo('sg-info', n, edges, type);
+                }
+            });
+
+            // Gerador Bipartido
+            const sgPart1 = document.getElementById('sg-part1-size');
+            const sgPart2 = document.getElementById('sg-part2-size');
+            const densitySlider = document.getElementById('sg-bipartite-density');
+            const densityValue = document.getElementById('density-value');
+            
+            densitySlider.addEventListener('input', () => {
+                densityValue.textContent = densitySlider.value;
+            });
+            
+            document.getElementById('generate-bipartite').addEventListener('click', () => {
+                const sizeU = parseInt(sgPart1.value);
+                const sizeV = parseInt(sgPart2.value);
+                const density = parseInt(densitySlider.value);
+                const maxEdges = sizeU * sizeV;
+                const m = Math.round((density / 100) * maxEdges);
+                const n = sizeU + sizeV;
+                const edges = generateBipartiteEdges(sizeU, sizeV, m);
+                renderGraph('sg-canvas-container', n, edges);
+                updateGraphInfo('sg-info', n, edges, `Bipartido (K${sizeU},${sizeV})`);
+            });
+
+            // Geradores Clássicos
+            document.getElementById('generate-kn').addEventListener('click', () => {
+                const n = parseInt(document.getElementById('sg-vertices-classicos').value);
+                const edges = generateCompleteEdges(n);
+                renderGraph('sg-canvas-container', n, edges);
+                updateGraphInfo('sg-info', n, edges, `Completo (K${n})`);
+            });
+             document.getElementById('generate-cn').addEventListener('click', () => {
+                const n = parseInt(document.getElementById('sg-vertices-classicos').value);
+                const edges = generateCycleEdges(n);
+                renderGraph('sg-canvas-container', n, edges);
+                updateGraphInfo('sg-info', n, edges, `Ciclo (C${n})`);
+            });
+
             // --- SEÇÃO 2 ---
             const pgBtn = document.getElementById('generate-pair');
             const pgVertices = document.getElementById('pg-vertices');
@@ -330,68 +483,6 @@
                     pgMsg.textContent = "Nenhum exemplo encontrado para esta combinação.";
                     clearCanvas('pg-canvas-A-container'); clearCanvas('pg-canvas-B-container');
                 }
-            });
-
-            // --- SEÇÃO 1 ---
-            const sgVerticesFiltros = document.getElementById('sg-vertices-filtros');
-            const sgEdges = document.getElementById('sg-edges');
-            
-            function updateEdgeLimit() {
-                const n = parseInt(sgVerticesFiltros.value);
-                const maxEdges = n * (n - 1) / 2;
-                sgEdges.max = maxEdges;
-                if (parseInt(sgEdges.value) > maxEdges) {
-                    sgEdges.value = maxEdges;
-                }
-            }
-            
-            sgVerticesFiltros.addEventListener('input', updateEdgeLimit);
-            updateEdgeLimit();
-
-            document.getElementById('generate-single').addEventListener('click', () => {
-                const n = parseInt(sgVerticesFiltros.value);
-                const m = parseInt(sgEdges.value);
-                const property = document.getElementById('sg-properties').value;
-                
-                let edges = null;
-                let type = "Gerado com Filtros";
-
-                if (property === 'connected') {
-                    type = "Conexo";
-                    if (m < n - 1) {
-                        updateGraphInfo('sg-info', n, [], 'Inválido', `Um grafo conexo com ${n} vértices precisa de pelo menos ${n - 1} arestas.`);
-                        clearCanvas('sg-canvas-container'); return;
-                    }
-                    edges = generateConnectedEdges(n, m);
-                } else if (property === 'disconnected') {
-                    type = "Desconexo";
-                    const maxEdgesForComponent = (n - 1) * (n - 2) / 2;
-                    if (m > maxEdgesForComponent) {
-                        updateGraphInfo('sg-info', n, [], 'Inválido', `Para garantir um grafo desconexo com ${n} vértices (isolando um), o número de arestas não pode exceder ${maxEdgesForComponent}.`);
-                        clearCanvas('sg-canvas-container'); return;
-                    }
-                    edges = generateDisconnectedEdges(n, m);
-                } else {
-                    edges = generateRandomEdges(n, m);
-                }
-
-                if (edges) {
-                    renderGraph('sg-canvas-container', n, edges);
-                    updateGraphInfo('sg-info', n, edges, type);
-                }
-            });
-
-            document.getElementById('generate-kn').addEventListener('click', () => {
-                const n = parseInt(document.getElementById('sg-vertices-classicos').value);
-                const edges = generateCompleteEdges(n);
-                renderGraph('sg-canvas-container', n, edges);
-                updateGraphInfo('sg-info', n, edges, `Completo (K${n})`);
-            });
-             document.getElementById('generate-cn').addEventListener('click', () => {
-                const n = parseInt(document.getElementById('sg-vertices-classicos').value);
-                const edges = generateCycleEdges(n);
-                renderGraph('sg-canvas-container', n, edges);
-                updateGraphInfo('sg-info', n, edges, `Ciclo (C${n})`);
             });
         };
         
@@ -439,58 +530,60 @@
             }
             return edges;
         }
-
         function generateConnectedEdges(n, m) {
             if (m < n - 1) return null;
-            const edges = [];
-            const edgeSet = new Set();
+            const edges = []; const edgeSet = new Set();
             let vertices = Array.from({length: n}, (_, i) => i);
-            vertices.sort(() => Math.random() - 0.5); // Shuffle vertices
-            
+            vertices.sort(() => Math.random() - 0.5);
             for (let i = 0; i < n - 1; i++) {
-                let u = vertices[i];
-                let v = vertices[i+1];
+                let u = vertices[i]; let v = vertices[i+1];
                  const key = u < v ? `${u}-${v}` : `${v}-${u}`;
-                edgeSet.add(key);
-                edges.push([u, v]);
+                edgeSet.add(key); edges.push([u, v]);
             }
-
             let tries = 0;
             while(edges.length < m && tries < (m*5)+100) {
-                let u = Math.floor(Math.random() * n);
-                let v = Math.floor(Math.random() * n);
+                let u = Math.floor(Math.random() * n); let v = Math.floor(Math.random() * n);
                 if (u === v) continue;
                 const key = u < v ? `${u}-${v}` : `${v}-${u}`;
-                if (!edgeSet.has(key)) {
-                    edgeSet.add(key);
-                    edges.push([u,v]);
-                }
+                if (!edgeSet.has(key)) { edgeSet.add(key); edges.push([u,v]); }
                 tries++;
             }
             return edges;
         }
-
         function generateDisconnectedEdges(n, m) {
             if (n < 2) return [];
             const maxEdgesForComponent = (n - 1) * (n - 2) / 2;
             if (m > maxEdgesForComponent) return null;
+            const edges = []; const edgeSet = new Set();
+            let tries = 0;
+            while(edges.length < m && tries < (m*5)+100) {
+                let u = Math.floor(Math.random() * (n - 1)); let v = Math.floor(Math.random() * (n - 1));
+                if (u === v) continue;
+                const key = u < v ? `${u}-${v}` : `${v}-${u}`;
+                if (!edgeSet.has(key)) { edgeSet.add(key); edges.push([u,v]); }
+                tries++;
+            }
+            return edges;
+        }
+        function generateBipartiteEdges(sizeU, sizeV, m) {
+            const n = sizeU + sizeV;
+            const maxEdges = sizeU * sizeV;
+            if (m > maxEdges) m = maxEdges;
             const edges = [];
             const edgeSet = new Set();
             let tries = 0;
             while(edges.length < m && tries < (m*5)+100) {
-                let u = Math.floor(Math.random() * (n - 1));
-                let v = Math.floor(Math.random() * (n - 1));
-                if (u === v) continue;
-                const key = u < v ? `${u}-${v}` : `${v}-${u}`;
+                let u = Math.floor(Math.random() * sizeU);
+                let v = sizeU + Math.floor(Math.random() * sizeV);
+                const key = `${u}-${v}`;
                 if (!edgeSet.has(key)) {
                     edgeSet.add(key);
-                    edges.push([u,v]);
+                    edges.push([u, v]);
                 }
                 tries++;
             }
             return edges;
         }
-
         function generateCompleteEdges(n) {
             const edges = [];
             for(let i=0; i<n; i++) for(let j=i+1; j<n; j++) edges.push([i,j]);
@@ -512,4 +605,3 @@
     </script>
 </body>
 </html>
-
