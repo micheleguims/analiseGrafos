@@ -17,10 +17,6 @@
             background-color: #ffffff;
             border-radius: 0.75rem;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            cursor: grab;
-        }
-        canvas:active {
-            cursor: grabbing;
         }
         .placeholder-canvas {
             display: flex;
@@ -95,10 +91,25 @@
             transition: background-color 0.2s;
             flex-shrink: 0;
         }
+        .btn-mode {
+             padding: 0.5rem 1rem;
+             border: 1px solid #d1d5db;
+             background-color: #fff;
+             color: #374151;
+             font-weight: 500;
+        }
+        .btn-mode.active {
+            background-color: #4f46e5;
+            color: white;
+            border-color: #4f46e5;
+        }
         .btn-primary { background-color: #4f46e5; }
         .btn-primary:hover { background-color: #4338ca; }
         .btn-secondary { background-color: #16a34a; }
         .btn-secondary:hover { background-color: #15803d; }
+        .cursor-eraser {
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"><path fill="rgba(0,0,0,0.5)" d="M7.47,21.5c-0.39,0-0.78-0.15-1.06-0.44l-5.66-5.66c-0.59-0.59-0.59-1.54,0-2.12l10.61-10.61c0.59-0.59,1.54-0.59,2.12,0l5.66,5.66c0.59,0.59,0.59,1.54,0,2.12L8.53,21.06C8.25,21.35,7.86,21.5,7.47,21.5z M2.24,14.71l4.56,4.56l10.61-10.61l-4.56-4.56L2.24,14.71z"/><path fill="rgba(0,0,0,0.8)" d="M22.56,8.53l-6.72-6.72c-0.98-0.98-2.56-0.98-3.54,0L1.71,12.4c-0.98,0.98-0.98,2.56,0,3.54l6.72,6.72c0.98,0.98,2.56,0.98,3.54,0l10.6-10.6C23.54,11.09,23.54,9.51,22.56,8.53z M8.41,21.21L2.2,15.01c-0.2-0.2-0.2-0.51,0-0.71l10.6-10.6c0.2-0.2,0.51-0.2,0.71,0l6.18,6.18L8.41,21.21z"/></svg>') 4 24, auto;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800 p-4 sm:p-6 lg:p-8">
@@ -115,14 +126,17 @@
             <p class="mb-4 text-gray-700">Esta ferramenta permite a criação e análise de grafos de forma interativa. Veja como usar:</p>
             <ul class="list-disc list-inside space-y-2 mb-4">
                 <li>
-                    <strong class="font-semibold">Seção 1 (Gerador Único):</strong> Crie um único grafo a partir de filtros (vértices, arestas) ou a partir de tipos clássicos (Completo, Ciclo).
+                    <strong class="font-semibold">Seção 1 (Gerador Único):</strong> Crie um único grafo a partir de filtros pré-definidos.
                 </li>
                 <li>
-                    <strong class="font-semibold">Seção 2 (Gerador de Pares):</strong> Compare dois grafos. Ideal para estudar conceitos como isomorfismo, selecionando as propriedades desejadas.
+                    <strong class="font-semibold">Seção 2 (Gerador de Pares):</strong> Compare dois grafos para estudar conceitos como isomorfismo.
+                </li>
+                 <li>
+                    <strong class="font-semibold">Seção 3 (Construtor Dinâmico):</strong> Crie seu próprio grafo do zero, vértice por vértice e aresta por aresta.
                 </li>
             </ul>
              <div class="mt-4 p-4 bg-yellow-100 border border-yellow-300 rounded-lg text-yellow-800">
-                <p><strong class="font-bold">Dica Interativa:</strong> Após gerar um grafo, você pode <strong class="underline">clicar e arrastar os seus vértices</strong> para mudar o desenho. Reorganize a forma para entender melhor a sua estrutura!</p>
+                <p><strong class="font-bold">Dica Interativa:</strong> Em qualquer seção, após gerar um grafo, você pode <strong class="underline">clicar e arrastar os seus vértices</strong> para mudar o desenho e entender melhor sua estrutura!</p>
             </div>
         </section>
 
@@ -220,7 +234,7 @@
         </section>
 
         <!-- SEÇÃO 2: GERADOR DE PARES -->
-        <section class="p-6 bg-white rounded-xl shadow-md">
+        <section class="mb-16 p-6 bg-white rounded-xl shadow-md">
             <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-center text-rose-700">2. Gerador de Pares de Grafos</h2>
             <div class="control-grid mb-6">
                 <div>
@@ -229,6 +243,7 @@
                         <option value="5">5</option>
                         <option value="6" selected>6</option>
                         <option value="7">7</option>
+                        <option value="8">8</option>
                     </select>
                 </div>
                 <div>
@@ -267,6 +282,35 @@
             </div>
         </section>
 
+        <!-- SEÇÃO 3: CONSTRUTOR DINÂMICO -->
+        <section class="p-6 bg-white rounded-xl shadow-md">
+            <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-center text-green-700">3. Construtor Dinâmico de Grafo</h2>
+            <div class="control-row">
+                 <div class="control-group">
+                    <label for="dg-vertices" class="font-medium block mb-1">Vértices (1-10):</label>
+                    <input type="number" id="dg-vertices" value="5" min="1" max="10">
+                </div>
+                <button id="dg-create-vertices" class="btn btn-primary">Criar Vértices</button>
+            </div>
+            <div class="flex items-center justify-center flex-wrap gap-2 my-4">
+                <span class="font-medium">Modo de Interação:</span>
+                <button id="dg-mode-move" class="btn btn-mode active">Mover Vértices</button>
+                <button id="dg-mode-simple-edge" class="btn btn-mode">Criar Arestas Simples</button>
+                <button id="dg-mode-multi-edge" class="btn btn-mode">Criar Laços/Paralelas</button>
+                <button id="dg-mode-erase" class="btn btn-mode">Apagar Arestas</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center mt-6">
+                <div>
+                    <div id="dg-canvas-container" class="w-full aspect-square placeholder-canvas"><span>Crie os vértices para começar.</span></div>
+                </div>
+                <div id="dg-info" class="p-4 bg-gray-50 rounded-lg min-h-[200px]">
+                    <h3 class="font-bold text-lg mb-2">Propriedades do Grafo:</h3>
+                    <p class="text-gray-600">Aguardando criação...</p>
+                </div>
+            </div>
+        </section>
+
+
         <footer class="text-center mt-12 py-4 border-t border-gray-200">
             <p class="text-sm text-gray-500">
                 Desenvolvido por Michele Guimarães Massari com o auxílio da IA Gemini.<br>Apoio à disciplina Fundamentos de Algorítmo para Computação (FAC) do curso de TSC - Cederj/UFF
@@ -277,14 +321,33 @@
     <script>
         const VERTEX_RADIUS = 16;
         const LINE_COLOR = '#4a5568';
+        const ERASE_COLOR = '#ef4444';
         const VERTEX_BORDER_COLOR = '#1f2937';
         const TEXT_COLOR = '#ffffff';
         const VERTEX_COLORS = ['#ef4444','#f97316','#eab308','#84cc16','#22c55e','#14b8a6','#06b6d4','#3b82f6','#8b5cf6','#d946ef'];
         
         let activeRenderers = {};
 
+        // Helper functions
+        function getPointOnQuadraticBezier(t, p0, p1, p2) {
+            const oneMinusT = 1 - t;
+            const x = oneMinusT * oneMinusT * p0.x + 2 * oneMinusT * t * p1.x + t * t * p2.x;
+            const y = oneMinusT * oneMinusT * p0.y + 2 * oneMinusT * t * p1.y + t * t * p2.y;
+            return { x, y };
+        }
+
+        function distToSegment(p, v, w) {
+            const l2 = (v.x - w.x)**2 + (v.y - w.y)**2;
+            if (l2 === 0) return Math.sqrt((p.x - v.x)**2 + (p.y - v.y)**2);
+            let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+            t = Math.max(0, Math.min(1, t));
+            const projX = v.x + t * (w.x - v.x);
+            const projY = v.y + t * (w.y - v.y);
+            return Math.sqrt((p.x - projX)**2 + (p.y - projY)**2);
+        }
+
         class GraphRenderer {
-             constructor(containerId, vertices, edges) {
+             constructor(containerId, vertices, edges, isDynamic = false) {
                 this.container = document.getElementById(containerId);
                 this.originalPlaceholder = this.container.innerHTML;
                 this.container.innerHTML = '';
@@ -295,8 +358,16 @@
                 this.container.appendChild(this.canvas);
                 this.ctx = this.canvas.getContext('2d');
                 this.vertices = JSON.parse(JSON.stringify(vertices));
-                this.edges = edges;
+                this.edges = JSON.parse(JSON.stringify(edges));
+                
+                this.isDynamic = isDynamic;
+                this.mode = 'move';
                 this.draggingVertex = null;
+                this.edgeCreationStart = null;
+                this.currentMousePos = null;
+                this.hoveredEdge = null;
+                this.recalculateSimpleEdgeSet();
+
                 this.boundOnMouseDown = this.onMouseDown.bind(this);
                 this.boundOnMouseMove = this.onMouseMove.bind(this);
                 this.boundOnMouseUp = this.onMouseUp.bind(this);
@@ -309,8 +380,28 @@
                 this.canvas.addEventListener('touchstart', this.boundOnTouchStart, { passive: false });
                 this.canvas.addEventListener('touchmove', this.boundOnTouchMove, { passive: false });
                 this.canvas.addEventListener('touchend', this.boundOnMouseUp);
+                this.setMode('move');
                 this.draw();
             }
+
+            recalculateSimpleEdgeSet() {
+                this.simpleEdgeSet = new Set();
+                this.edges.forEach(([u, v]) => {
+                    if (u !== v) {
+                        this.simpleEdgeSet.add(u < v ? `${u}-${v}` : `${v}-${u}`);
+                    }
+                });
+            }
+            
+            setMode(newMode) {
+                this.mode = newMode;
+                this.canvas.classList.remove('cursor-eraser');
+                this.canvas.style.cursor = '';
+                if (newMode === 'simple_edge' || newMode === 'multi_edge') this.canvas.style.cursor = 'crosshair';
+                else if (newMode === 'erase') this.canvas.classList.add('cursor-eraser');
+                else this.canvas.style.cursor = 'grab';
+            }
+
             destroy() {
                 this.canvas.removeEventListener('mousedown', this.boundOnMouseDown);
                 this.canvas.removeEventListener('mousemove', this.boundOnMouseMove);
@@ -322,14 +413,62 @@
                 this.container.innerHTML = this.originalPlaceholder;
                 this.container.classList.add('placeholder-canvas');
             }
+
             draw() {
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                this.ctx.strokeStyle = LINE_COLOR; this.ctx.lineWidth = 2;
-                this.edges.forEach(edge => {
-                    const v1 = this.vertices[edge[0]]; const v2 = this.vertices[edge[1]];
+
+                const vertexEdgeAngles = Array.from({ length: this.vertices.length }, () => []);
+                this.edges.forEach(([u, v]) => {
+                    if (u === v) return;
+                    const v1 = this.vertices[u]; const v2 = this.vertices[v];
                     if (!v1 || !v2) return;
-                    this.ctx.beginPath(); this.ctx.moveTo(v1.x, v1.y); this.ctx.lineTo(v2.x, v2.y); this.ctx.stroke();
+                    vertexEdgeAngles[u].push(Math.atan2(v2.y - v1.y, v2.x - v1.x));
+                    vertexEdgeAngles[v].push(Math.atan2(v1.y - v2.y, v1.x - v2.x));
                 });
+
+                const bestLoopAngles = vertexEdgeAngles.map(angles => {
+                    if (angles.length === 0) return -Math.PI / 2;
+                    angles.sort((a, b) => a - b);
+                    let maxGap = 0; let bestAngle = 0;
+                    for (let i = 0; i < angles.length - 1; i++) {
+                        if (angles[i + 1] - angles[i] > maxGap) {
+                            maxGap = angles[i + 1] - angles[i];
+                            bestAngle = angles[i] + maxGap / 2;
+                        }
+                    }
+                    if (2 * Math.PI + angles[0] - angles[angles.length - 1] > maxGap) {
+                        maxGap = 2 * Math.PI + angles[0] - angles[angles.length - 1];
+                        bestAngle = angles[angles.length - 1] + maxGap / 2;
+                    }
+                    return bestAngle;
+                });
+                
+                const edgeDrawCount = {};
+
+                this.edges.forEach(([u, v], index) => {
+                    this.ctx.strokeStyle = (this.mode === 'erase' && this.hoveredEdge && this.hoveredEdge.index === index) ? ERASE_COLOR : LINE_COLOR;
+                    this.ctx.lineWidth = (this.mode === 'erase' && this.hoveredEdge && this.hoveredEdge.index === index) ? 4 : 2;
+                    const v1 = this.vertices[u];
+                    const v2 = this.vertices[v];
+                    if (!v1 || !v2) return;
+
+                    if (u === v) {
+                        this.drawLoop(v1, bestLoopAngles[u]);
+                    } else {
+                        const key = u < v ? `${u}-${v}` : `${v}-${u}`;
+                        const count = (edgeDrawCount[key] || 0) + 1;
+                        edgeDrawCount[key] = count;
+                        
+                        if (count === 1) {
+                            this.drawStraightEdge(v1, v2);
+                        } else {
+                            this.drawCurvedEdge(v1, v2, count - 1);
+                        }
+                    }
+                });
+
+                this.drawPreview(bestLoopAngles);
+
                 this.vertices.forEach((vertex, index) => {
                     this.ctx.beginPath(); this.ctx.arc(vertex.x, vertex.y, VERTEX_RADIUS, 0, 2 * Math.PI);
                     this.ctx.fillStyle = VERTEX_COLORS[index % VERTEX_COLORS.length]; this.ctx.fill();
@@ -338,6 +477,65 @@
                     this.ctx.textAlign = 'center'; this.ctx.textBaseline = 'middle'; this.ctx.fillText(index + 1, vertex.x, vertex.y);
                 });
             }
+
+            drawLoop(v, angle) {
+                const loopRadius = VERTEX_RADIUS * 0.8;
+                const offset = VERTEX_RADIUS * 1.5;
+                const loopCenterX = v.x + offset * Math.cos(angle);
+                const loopCenterY = v.y + offset * Math.sin(angle);
+                this.ctx.beginPath();
+                this.ctx.arc(loopCenterX, loopCenterY, loopRadius, 0, 2 * Math.PI);
+                this.ctx.stroke();
+            }
+
+            drawStraightEdge(v1, v2) {
+                this.ctx.beginPath();
+                this.ctx.moveTo(v1.x, v1.y);
+                this.ctx.lineTo(v2.x, v2.y);
+                this.ctx.stroke();
+            }
+
+            drawCurvedEdge(v1, v2, parallelIndex) {
+                const sign = (parallelIndex % 2 === 1) ? 1 : -1;
+                const curvature = 0.2 + (Math.ceil(parallelIndex / 2) * 0.15);
+                const midX = (v1.x + v2.x) / 2;
+                const midY = (v1.y + v2.y) / 2;
+                const dx = v2.x - v1.x;
+                const dy = v2.y - v1.y;
+                const ctrlX = midX + curvature * dy * sign;
+                const ctrlY = midY - curvature * dx * sign;
+                this.ctx.beginPath();
+                this.ctx.moveTo(v1.x, v1.y);
+                this.ctx.quadraticCurveTo(ctrlX, ctrlY, v2.x, v2.y);
+                this.ctx.stroke();
+            }
+
+            drawPreview(bestLoopAngles) {
+                if (!this.isDynamic || !this.edgeCreationStart || !this.currentMousePos) return;
+
+                this.ctx.strokeStyle = '#f87171';
+                this.ctx.setLineDash([5, 5]);
+
+                const startV = this.edgeCreationStart.vertex;
+                const endPos = this.currentMousePos;
+                const endTarget = this.getVertexAtPos(endPos);
+
+                if (this.mode === 'multi_edge' && endTarget) {
+                    const u = this.edgeCreationStart.index;
+                    const v = endTarget.index;
+                    if (u === v) { // Loop preview
+                        this.drawLoop(startV, bestLoopAngles[u]);
+                    } else { // Parallel preview
+                        const existingCount = this.edges.filter(e => (e[0] === u && e[1] === v) || (e[0] === v && e[1] === u)).length;
+                        this.drawCurvedEdge(startV, endTarget.vertex, existingCount);
+                    }
+                } else { // Simple edge or multi to empty space
+                    this.drawStraightEdge(startV, endPos);
+                }
+
+                this.ctx.setLineDash([]);
+            }
+
             getMousePos(event) {
                 const rect = this.canvas.getBoundingClientRect();
                 const scaleX = this.canvas.width / rect.width; const scaleY = this.canvas.height / rect.height;
@@ -345,22 +543,146 @@
                 const clientY = event.touches ? event.touches[0].clientY : event.clientY;
                 return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
             }
-            onMouseDown(event) {
-                const pos = this.getMousePos(event);
-                for (let i = this.vertices.length - 1; i >= 0; i--) {
+
+            getVertexAtPos(pos) {
+                 for (let i = this.vertices.length - 1; i >= 0; i--) {
                     const v = this.vertices[i];
-                    if ((pos.x - v.x)**2 + (pos.y - v.y)**2 < VERTEX_RADIUS**2) { this.draggingVertex = { vertex: v, offsetX: pos.x - v.x, offsetY: pos.y - v.y }; return; }
+                    if ((pos.x - v.x)**2 + (pos.y - v.y)**2 < VERTEX_RADIUS**2) {
+                        return { vertex: v, index: i };
+                    }
+                }
+                return null;
+            }
+
+            onMouseDown(event) {
+                if (this.mode === 'erase' && this.hoveredEdge) {
+                    this.edges.splice(this.hoveredEdge.index, 1);
+                    this.recalculateSimpleEdgeSet();
+                    this.hoveredEdge = null;
+                    updateGraphInfo('dg-info', this.vertices.length, this.edges, "Construído dinamicamente");
+                    this.draw();
+                    return;
+                }
+                
+                const pos = this.getMousePos(event);
+                const target = this.getVertexAtPos(pos);
+                if (!target) return;
+
+                if (this.mode === 'move') {
+                    this.draggingVertex = { vertex: target.vertex, offsetX: pos.x - target.vertex.x, offsetY: pos.y - target.vertex.y };
+                } else if (this.isDynamic && (this.mode === 'simple_edge' || this.mode === 'multi_edge')) {
+                    this.edgeCreationStart = target;
                 }
             }
             onMouseMove(event) {
-                if (this.draggingVertex) {
-                    const pos = this.getMousePos(event);
+                const pos = this.getMousePos(event);
+                if (this.mode === 'move' && this.draggingVertex) {
                     this.draggingVertex.vertex.x = Math.max(VERTEX_RADIUS, Math.min(this.canvas.width - VERTEX_RADIUS, pos.x - this.draggingVertex.offsetX));
                     this.draggingVertex.vertex.y = Math.max(VERTEX_RADIUS, Math.min(this.canvas.height - VERTEX_RADIUS, pos.y - this.draggingVertex.offsetY));
+                } else if (this.isDynamic && (this.mode === 'simple_edge' || this.mode === 'multi_edge') && this.edgeCreationStart) {
+                    this.currentMousePos = pos;
+                } else if (this.isDynamic && this.mode === 'erase') {
+                    this.updateHoveredEdge(pos);
+                }
+                this.draw();
+            }
+
+            updateHoveredEdge(pos) {
+                let closestEdge = { index: -1, dist: Infinity };
+
+                const vertexEdgeAngles = Array.from({ length: this.vertices.length }, () => []);
+                this.edges.forEach(([u, v]) => {
+                    if(u === v) return;
+                    const v1 = this.vertices[u]; const v2 = this.vertices[v];
+                    if (!v1 || !v2) return;
+                    vertexEdgeAngles[u].push(Math.atan2(v2.y - v1.y, v2.x - v1.x));
+                    vertexEdgeAngles[v].push(Math.atan2(v1.y - v2.y, v1.x - v2.x));
+                });
+                const bestLoopAngles = vertexEdgeAngles.map(angles => {
+                    if (angles.length === 0) return -Math.PI / 2;
+                    angles.sort((a, b) => a - b); let maxGap = 0; let bestAngle = 0;
+                    for (let i = 0; i < angles.length - 1; i++) {
+                        if (angles[i + 1] - angles[i] > maxGap) { maxGap = angles[i + 1] - angles[i]; bestAngle = angles[i] + maxGap / 2; }
+                    }
+                    if (2 * Math.PI + angles[0] - angles[angles.length - 1] > maxGap) { maxGap = 2*Math.PI + angles[0] - angles[angles.length - 1]; bestAngle = angles[angles.length - 1] + maxGap / 2; }
+                    return bestAngle;
+                });
+
+                const edgeDrawCount = {};
+
+                this.edges.forEach(([u, v], index) => {
+                    const v1 = this.vertices[u]; const v2 = this.vertices[v];
+                    if(!v1 || !v2) return;
+                    let dist = Infinity;
+                    if (u === v) {
+                        const angle = bestLoopAngles[u];
+                        const loopRadius = VERTEX_RADIUS * 0.8;
+                        const offset = VERTEX_RADIUS * 1.5;
+                        const loopCenterX = v1.x + offset * Math.cos(angle);
+                        const loopCenterY = v1.y + offset * Math.sin(angle);
+                        dist = Math.abs(Math.sqrt((pos.x - loopCenterX)**2 + (pos.y - loopCenterY)**2) - loopRadius);
+                    } else {
+                        const key = u < v ? `${u}-${v}` : `${v}-${u}`;
+                        const count = (edgeDrawCount[key] || 0) + 1;
+                        edgeDrawCount[key] = count;
+
+                        if (count === 1) {
+                            dist = distToSegment(pos, v1, v2);
+                        } else {
+                            const parallelIndex = count - 1;
+                            const sign = (parallelIndex % 2 === 1) ? 1 : -1;
+                            const curvature = 0.2 + (Math.ceil(parallelIndex / 2) * 0.15);
+                            const midX = (v1.x+v2.x)/2; const midY = (v1.y+v2.y)/2;
+                            const dx=v2.x-v1.x; const dy=v2.y-v1.y;
+                            const ctrlX = midX + curvature*dy*sign; const ctrlY = midY-curvature*dx*sign;
+                            const p0 = v1, p1 = {x:ctrlX, y:ctrlY}, p2 = v2;
+                            dist = Infinity;
+                            const steps = 10;
+                            let lastPoint = p0;
+                            for (let i = 1; i <= steps; i++) {
+                                const t = i / steps;
+                                const currentPoint = getPointOnQuadraticBezier(t, p0, p1, p2);
+                                const segmentDist = distToSegment(pos, lastPoint, currentPoint);
+                                if (segmentDist < dist) dist = segmentDist;
+                                lastPoint = currentPoint;
+                            }
+                        }
+                    }
+                    if (dist < closestEdge.dist) closestEdge = { index, dist };
+                });
+                this.hoveredEdge = (closestEdge.dist < 15) ? closestEdge : null;
+            }
+
+            onMouseUp(event) {
+                if (this.mode === 'move') {
+                    this.draggingVertex = null;
+                } else if (this.isDynamic && this.edgeCreationStart) {
+                    const pos = this.getMousePos(event);
+                    const endTarget = this.getVertexAtPos(pos);
+                    
+                    if (endTarget) {
+                        const u = this.edgeCreationStart.index;
+                        const v = endTarget.index;
+
+                        if (this.mode === 'simple_edge') {
+                            if (u !== v) {
+                                const key = u < v ? `${u}-${v}` : `${v}-${u}`;
+                                if (!this.simpleEdgeSet.has(key)) {
+                                    this.edges.push([u, v]);
+                                    this.simpleEdgeSet.add(key);
+                                }
+                            }
+                        } else if (this.mode === 'multi_edge') {
+                             this.edges.push([u, v]);
+                             if(u !== v) this.simpleEdgeSet.add(u < v ? `${u}-${v}` : `${v}-${u}`);
+                        }
+                        updateGraphInfo('dg-info', this.vertices.length, this.edges, "Construído dinamicamente");
+                    }
+                    this.edgeCreationStart = null;
+                    this.currentMousePos = null;
                     this.draw();
                 }
             }
-            onMouseUp() { this.draggingVertex = null; }
         }
 
         class DSU {
@@ -383,11 +705,32 @@
         }
 
         const pairDatabase = [
+            // --- Isomorphic, Same Props, Not Disconnected ---
             { numVertices: 6, isomorphic: true, sameProps: true, oneDisconnected: false, edges: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0]], description: "Dois desenhos do ciclo C6." },
+            { numVertices: 6, isomorphic: true, sameProps: true, oneDisconnected: false, edges: [[0,1],[1,2],[2,3],[3,4],[4,5]], description: "Dois desenhos do caminho P6." },
+            { numVertices: 6, isomorphic: true, sameProps: true, oneDisconnected: false, edges: [[0,1],[1,2],[2,3],[0,4],[0,5]], description: "Duas árvores (grafo-estrela com 'braços')." },
+
+            { numVertices: 7, isomorphic: true, sameProps: true, oneDisconnected: false, edges: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,0]], description: "Dois desenhos do ciclo C7." },
             { numVertices: 7, isomorphic: true, sameProps: true, oneDisconnected: false, edges: [[0,1],[1,2],[2,3],[3,0],[0,4],[4,5],[5,6],[6,0]], description: "Dois desenhos de C4 e C4 com vértice em comum." },
+
+            { numVertices: 8, isomorphic: true, sameProps: true, oneDisconnected: false, edges: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,0]], description: "Dois desenhos do ciclo C8." },
+            { numVertices: 8, isomorphic: true, sameProps: true, oneDisconnected: false, edges: [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4]], description: "Dois C4 conectados por uma ponte." },
+            { numVertices: 8, isomorphic: true, sameProps: true, oneDisconnected: false, edges: [[0,1],[0,2],[0,3],[1,4],[1,5],[2,6],[2,7]], description: "Duas árvores binárias de profundidade 2." },
+
+
+            // --- Non-Isomorphic, Same Props ---
+            // One disconnected
             { numVertices: 6, isomorphic: false, sameProps: true, oneDisconnected: true, graphA: { numVertices: 6, edges: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0]] }, graphB: { numVertices: 6, edges: [[0,1],[1,2],[2,0],[3,4],[4,5],[5,3]] }, description: "Não isomorfos: C6 (conexo) vs 2x C3 (desconexo). Ambos 2-regulares." },
+            { numVertices: 8, isomorphic: false, sameProps: true, oneDisconnected: true, graphA: { numVertices: 8, edges: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,0]] }, graphB: { numVertices: 8, edges: [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4]] }, description: "Não isomorfos: C8 (conexo) vs 2x C4 (desconexo). Ambos 2-regulares." },
+
+            // Both connected
             { numVertices: 6, isomorphic: false, sameProps: true, oneDisconnected: false, graphA: { numVertices: 6, edges: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0], [0,3]] }, graphB: { numVertices: 6, edges: [[0,1],[1,2],[2,3],[3,4],[4,0], [0,5],[2,5]] }, description: "Não isomorfos, ambos conexos. Um é bipartido, o outro não." },
+            { numVertices: 8, isomorphic: false, sameProps: true, oneDisconnected: false, graphA: { numVertices: 8, edges: [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]]}, graphB: { numVertices: 8, edges: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,0],[0,2],[1,3],[4,6],[5,7]]}, description: "Não isomorfos, 3-regulares. Um tem ciclos C4, o outro não."},
+            { numVertices: 8, isomorphic: false, sameProps: true, oneDisconnected: false, graphA: { numVertices: 8, edges: [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,5],[1,4]]}, graphB: { numVertices: 8, edges: [[0,1],[1,2],[2,3],[3,4],[4,0],[5,6],[6,7],[7,5],[0,5],[2,7]]}, description: "Não isomorfos, ambos conexos com mesma seq. de graus."},
+
+            // --- Non-Isomorphic, Different Props ---
             { numVertices: 5, isomorphic: false, sameProps: false, oneDisconnected: false, graphA: { numVertices: 5, edges: [[0,1],[1,2],[2,3],[3,4],[4,0]] }, graphB: { numVertices: 5, edges: [[0,1],[1,2],[2,0],[0,3],[3,4]] }, description: "Propriedades diferentes: C5 (2-regular) vs Grafo com graus (4,2,2,2,2)." },
+            { numVertices: 6, isomorphic: false, sameProps: false, oneDisconnected: false, graphA: { numVertices: 6, edges: [[0,1],[0,2],[0,3],[0,4],[0,5]] }, graphB: { numVertices: 6, edges: [[0,1],[1,2],[2,3],[3,4],[4,5]] }, description: "Propriedades diferentes: Estrela K1,5 vs Caminho P6." }
         ];
         
         window.onload = () => {
@@ -423,19 +766,25 @@
                     cycleOptions.style.display = 'contents';
                     sgEdgesLabel.innerHTML = 'Total de Arestas:';
                     
-                    const numCycles = parseInt(sgNumCycles.value);
-                    const requiredVertices = numCycles * parseInt(sgCycleLength.value);
+                    const numCycles = parseInt(sgNumCycles.value) || 1;
+                    const cycleLength = parseInt(sgCycleLength.value) || 3;
+                    const requiredVertices = numCycles * cycleLength;
+                    const requiredEdges = numCycles * cycleLength;
                     const initialComponents = (n - requiredVertices) + numCycles;
-                    const maxEdges = (numCycles * parseInt(sgCycleLength.value)) + (initialComponents > 1 ? initialComponents - 1 : 0) ;
+                    const maxEdges = requiredEdges + (initialComponents > 1 ? initialComponents - 1 : 0);
                     
+                    sgEdges.min = requiredEdges;
                     sgEdges.max = maxEdges;
                     if (parseInt(sgEdges.value) > maxEdges) sgEdges.value = maxEdges;
+                    if (parseInt(sgEdges.value) < requiredEdges) sgEdges.value = requiredEdges;
+
 
                 } else {
                     cycleOptions.style.display = 'none';
                     sgEdgesLabel.innerHTML = 'Arestas:';
                     const maxEdges = n * (n - 1) / 2;
                     sgEdges.max = maxEdges;
+                    sgEdges.min = 0;
                     if (parseInt(sgEdges.value) > maxEdges) sgEdges.value = maxEdges;
                 }
             }
@@ -444,6 +793,7 @@
             sgVerticesFiltros.addEventListener('input', updateFilterOptions);
             sgNumCycles.addEventListener('input', updateFilterOptions);
             sgCycleLength.addEventListener('input', updateFilterOptions);
+            sgEdges.addEventListener('input', updateFilterOptions);
             updateFilterOptions();
 
             document.getElementById('generate-single').addEventListener('click', () => {
@@ -463,10 +813,7 @@
                          updateGraphInfo('sg-info', n, [], 'Inválido', `Para ${numCycles} ciclo(s) de tamanho ${cycleLength}, são necessários pelo menos ${requiredVertices} vértices.`);
                         clearCanvas('sg-canvas-container'); return;
                     }
-                    if (m < requiredVertices) {
-                        updateGraphInfo('sg-info', n, [], 'Inválido', `Para construir o(s) ciclo(s) são necessárias ${requiredVertices} arestas. Você pediu um total de ${m}.`);
-                        clearCanvas('sg-canvas-container'); return;
-                    }
+                    
                     edges = generateGraphWithCycles(n, numCycles, cycleLength, m);
 
                 } else {
@@ -564,14 +911,46 @@
                     clearCanvas('pg-canvas-A-container'); clearCanvas('pg-canvas-B-container');
                 }
             });
+
+            // --- SEÇÃO 3 ---
+            const dgCreateBtn = document.getElementById('dg-create-vertices');
+            const modeButtons = {
+                move: document.getElementById('dg-mode-move'),
+                simple_edge: document.getElementById('dg-mode-simple-edge'),
+                multi_edge: document.getElementById('dg-mode-multi-edge'),
+                erase: document.getElementById('dg-mode-erase')
+            };
+
+            dgCreateBtn.addEventListener('click', () => {
+                const n = parseInt(document.getElementById('dg-vertices').value);
+                renderGraph('dg-canvas-container', n, [], true);
+                updateGraphInfo('dg-info', n, [], "Construído dinamicamente");
+                
+                Object.values(modeButtons).forEach(btn => btn.classList.remove('active'));
+                modeButtons.move.classList.add('active');
+                if (activeRenderers['dg-canvas-container']) {
+                    activeRenderers['dg-canvas-container'].setMode('move');
+                }
+            });
+            
+            Object.entries(modeButtons).forEach(([mode, button]) => {
+                button.addEventListener('click', () => {
+                    Object.values(modeButtons).forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    if (activeRenderers['dg-canvas-container']) {
+                        activeRenderers['dg-canvas-container'].setMode(mode);
+                    }
+                });
+            });
+
         };
         
-        function renderGraph(containerId, numVertices, edges) {
+        function renderGraph(containerId, numVertices, edges, isDynamic = false) {
              if (activeRenderers[containerId]) activeRenderers[containerId].destroy();
              const container = document.getElementById(containerId);
              const size = container.clientWidth;
              const vertices = generateRandomVertices(numVertices, size, size);
-             activeRenderers[containerId] = new GraphRenderer(containerId, vertices, edges);
+             activeRenderers[containerId] = new GraphRenderer(containerId, vertices, edges, isDynamic);
         }
         function clearCanvas(containerId) {
              if (activeRenderers[containerId]) activeRenderers[containerId].destroy();
@@ -585,9 +964,34 @@
                 return;
             }
             const degrees = new Array(n).fill(0);
-            edges.forEach(([u,v]) => { if (u < n && v < n) { degrees[u]++; degrees[v]++; }});
-            degrees.sort((a, b) => b - a);
+            let loopCount = 0;
+            const edgeCounts = {};
+            
+            edges.forEach(([u,v]) => { 
+                if (u >= n || v >= n) return;
+                if (u === v) {
+                    loopCount++;
+                    degrees[u] += 2;
+                } else {
+                    degrees[u]++; 
+                    degrees[v]++;
+                    const key = u < v ? `${u}-${v}` : `${v}-${u}`;
+                    edgeCounts[key] = (edgeCounts[key] || 0) + 1;
+                }
+            });
 
+            let parallelCount = 0;
+            for (const key in edgeCounts) {
+                if (edgeCounts[key] > 1) {
+                    parallelCount += edgeCounts[key] - 1;
+                }
+            }
+
+            const isMultigraph = loopCount > 0 || parallelCount > 0;
+            const graphClassification = isMultigraph ? 'Multigrafo' : 'Grafo Simples';
+
+            degrees.sort((a, b) => b - a);
+            
             let bipartitenessInfo = '';
             if (type.includes('ciclo(s)')) {
                 const cycleLengthMatch = type.match(/C(\d+)/);
@@ -601,6 +1005,16 @@
                 }
             }
 
+            let multiGraphInfo = '';
+            if (infoId === 'dg-info') {
+                multiGraphInfo = `
+                    <hr class="my-2">
+                    <p><strong>Classificação:</strong> ${graphClassification}</p>
+                    <p><strong>Laços:</strong> ${loopCount}</p>
+                    <p><strong>Arestas Paralelas:</strong> ${parallelCount}</p>
+                `;
+            }
+
             infoBox.innerHTML = `
                 <h3 class="font-bold text-lg mb-2">Propriedades do Grafo:</h3>
                 <p><strong>Tipo Solicitado:</strong> ${type}</p>
@@ -608,6 +1022,7 @@
                 <p><strong>Arestas (m):</strong> ${edges.length}</p>
                 <p><strong>Seq. de Graus:</strong> (${degrees.join(', ')})</p>
                 ${bipartitenessInfo}
+                ${multiGraphInfo}
             `;
         }
         function generateRandomEdges(n, m) {
@@ -669,21 +1084,38 @@
         }
         function generateConnectedEdges(n, m) {
             if (m < n - 1) return null;
-            const edges = []; const edgeSet = new Set();
-            let vertices = Array.from({length: n}, (_, i) => i);
-            vertices.sort(() => Math.random() - 0.5);
-            for (let i = 0; i < n - 1; i++) {
-                let u = vertices[i]; let v = vertices[i+1];
-                 const key = u < v ? `${u}-${v}` : `${v}-${u}`;
-                edgeSet.add(key); edges.push([u, v]);
+            const dsu = new DSU(n);
+            const edges = [];
+            const edgeSet = new Set();
+            
+            const allPossibleEdges = [];
+            for (let i = 0; i < n; i++) {
+                for (let j = i + 1; j < n; j++) {
+                    allPossibleEdges.push([i, j]);
+                }
             }
-            let tries = 0;
-            while(edges.length < m && tries < (m*5)+100) {
-                let u = Math.floor(Math.random() * n); let v = Math.floor(Math.random() * n);
-                if (u === v) continue;
+            allPossibleEdges.sort(() => Math.random() - 0.5);
+
+            for (const edge of allPossibleEdges) {
+                if (dsu.union(edge[0], edge[1])) {
+                    const [u, v] = edge;
+                    const key = u < v ? `${u}-${v}` : `${v}-${u}`;
+                    edges.push(edge);
+                    edgeSet.add(key);
+                }
+                if (edges.length === n - 1) break;
+            }
+
+            let edgePoolIndex = 0;
+            while(edges.length < m && edgePoolIndex < allPossibleEdges.length) {
+                const edge = allPossibleEdges[edgePoolIndex];
+                const [u, v] = edge;
                 const key = u < v ? `${u}-${v}` : `${v}-${u}`;
-                if (!edgeSet.has(key)) { edgeSet.add(key); edges.push([u,v]); }
-                tries++;
+                if (!edgeSet.has(key)) {
+                    edges.push(edge);
+                    edgeSet.add(key);
+                }
+                edgePoolIndex++;
             }
             return edges;
         }
@@ -742,5 +1174,3 @@
     </script>
 </body>
 </html>
-
-
